@@ -112,9 +112,10 @@ class StockValuationLayerRevaluation(models.TransientModel):
         elif self.company_id.inventory_revaluation_distribution_method == "value":
             remaining_value_factor = self.added_value / sum(remaining_svls.mapped('remaining_value'))
             for svl in remaining_svls:
-                if float_compare(svl.remaining_value * remaining_value_factor, 0, precision_rounding=self.product_id.uom_id.rounding) < 0:
+                mutation_value = svl.remaining_value * remaining_value_factor
+                if float_compare(svl.remaining_value + mutation_value, 0, precision_rounding=self.product_id.uom_id.rounding) < 0:
                     raise UserError(_('The value of a stock valuation layer cannot be negative. Landed cost could be use to correct a specific transfer.'))
-                svl.remaining_value += svl.remaining_value * remaining_value_factor
+                svl.remaining_value += mutation_value
         else: 
             raise UserError("Invalid Revaluation method.")  
 
