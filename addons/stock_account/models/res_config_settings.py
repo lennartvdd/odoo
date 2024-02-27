@@ -13,6 +13,8 @@ class ResConfigSettings(models.TransientModel):
                                           implied_group='stock_account.group_lot_on_invoice')
     group_stock_accounting_automatic = fields.Boolean(
         "Automatic Stock Accounting", implied_group="stock_account.group_stock_accounting_automatic")
+    
+    inventory_revaluation_distribution_method = fields.Selection(related='company_id.inventory_revaluation_distribution_method', string='Revaluation Distribution Method', readonly=False, required=True)
 
     def set_values(self):
         automatic_before = self.env.user.has_group('stock_account.group_stock_accounting_automatic')

@@ -92,10 +92,8 @@ class StockValuationLayerRevaluation(models.TransientModel):
             'quantity': 0,
         }
 
-        # TODO: make this value configurable from the application settings.
-        method = "value"
-        # Revaluation Method: proportional to quantities
-        if method == "quantity":
+        # Distribute revaluation proportional to quantity (default)
+        if self.company_id.inventory_revaluation_distribution_method == "quantity":
             remaining_qty = sum(remaining_svls.mapped('remaining_qty'))
             remaining_value = self.added_value
             remaining_value_unit_cost = self.currency_id.round(remaining_value / remaining_qty)
@@ -110,15 +108,15 @@ class StockValuationLayerRevaluation(models.TransientModel):
                 svl.remaining_value += taken_remaining_value
                 remaining_value -= taken_remaining_value
                 remaining_qty -= svl.remaining_qty
-        # Revaluation Method: proportional to values
-        elif method == "value":
+        # Distribute revaluation proportional to values
+        elif self.company_id.inventory_revaluation_distribution_method == "value":
             remaining_value_factor = self.added_value / sum(remaining_svls.mapped('remaining_value'))
             for svl in remaining_svls:
                 if float_compare(svl.remaining_value * remaining_value_factor, 0, precision_rounding=self.product_id.uom_id.rounding) < 0:
                     raise UserError(_('The value of a stock valuation layer cannot be negative. Landed cost could be use to correct a specific transfer.'))
                 svl.remaining_value += svl.remaining_value * remaining_value_factor
         else: 
-            raise UserError("Invalid Revaluation method.")      
+            raise UserError("Invalid Revaluation method.")  
 
         revaluation_svl = self.env['stock.valuation.layer'].create(revaluation_svl_vals)
 

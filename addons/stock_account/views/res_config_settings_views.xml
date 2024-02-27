@@ -17,6 +17,10 @@
                         <setting invisible="not group_stock_production_lot" id="group_lot_on_invoice" help="Lots &amp; Serial numbers will appear on the invoice">
                             <field name="group_lot_on_invoice"/>
                         </setting>
+                        <field name="company_id" invisible="1"/>
+                        <setting id="inventory_revaluation_distribution_setting" title="Distribute revaluations proportionate to either quantity (default) or value." help="Distribute revaluations proportionate to quantity (default) or value." company_dependent="1" documentation="applications/inventory_and_mrp/inventory/warehouses_storage/inventory_valuation/using_inventory_valuation.html#update-product-unit-price">
+                            <field name="inventory_revaluation_distribution_method"/>
+                        </setting>
                     </block>
                 </block>
             </field>
