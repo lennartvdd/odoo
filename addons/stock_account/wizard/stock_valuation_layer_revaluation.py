@@ -128,8 +128,8 @@ class StockValuationLayerRevaluation(models.TransientModel):
         if cost_method == 'average' or (cost_method == 'fifo' and distribution_method == 'quantity'):
             product_id.with_context(disable_auto_svl=True).standard_price += self.added_value / self.current_quantity_svl
         elif cost_method == 'fifo' and distribution_method == 'value':
-            old_price = product_id.with_context(disable_auto_svl=True).standard_price
-            product_id.with_context(disable_auto_svl=True).standard_price += old_price * mutation_factor
+            standard_price_mutation = product_id.with_context(disable_auto_svl=True).standard_price * mutation_factor
+            product_id.with_context(disable_auto_svl=True).standard_price += standard_price_mutation
 
         # If the Inventory Valuation of the product category is automated, create related account move.
         if self.property_valuation != 'real_time':
