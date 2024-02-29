@@ -13,4 +13,3 @@ class ResConfigSettings(models.TransientModel):
                                           implied_group='stock_account.group_lot_on_invoice')
     
     inventory_revaluation_distribution_method = fields.Selection(related='company_id.inventory_revaluation_distribution_method', string='Revaluation Distribution Method', readonly=False, required=True)
-    
