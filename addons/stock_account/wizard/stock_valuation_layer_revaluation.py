@@ -98,8 +98,8 @@ class StockValuationLayerRevaluation(models.TransientModel):
         if cost_method in ('average', 'fifo'):
             description += _(
                 " Product cost updated from %(previous)s to %(new_cost)s.",
-                previous=product_id.standard_price,
-                new_cost=new_standard_price,
+                previous=self.currency_id.round(product_id.standard_price),
+                new_cost=self.currency_id.round(new_standard_price),
             )
         revaluation_svl_vals = {
             'company_id': self.company_id.id,
