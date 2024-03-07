@@ -81,7 +81,12 @@ class StockValuationLayerRevaluation(models.TransientModel):
         remaining_qty = sum(remaining_svls.mapped('remaining_qty'))
         remaining_value = sum(remaining_svls.mapped('remaining_value'))
         mutation_unit_cost = self.added_value / remaining_qty
-        mutation_factor = self.added_value / remaining_value
+        
+        if distribution_method == 'value' and float_compare(remaining_value, 0, precision_digits=self.product_id.uom_id.rounding) > 0:
+            mutation_factor = self.added_value / remaining_value
+        else:
+            #There is no remaining value. A revaluation factor cannot be calculated and distribution by value is not possible. Distribute the revaluation by quantity.
+            distribution_method = 'quantity'
 
         # Calculate new product standard price in case of FIFO or AVCO
         if cost_method in ('average', 'fifo'):
@@ -101,6 +106,8 @@ class StockValuationLayerRevaluation(models.TransientModel):
                 previous=self.currency_id.round(product_id.standard_price),
                 new_cost=self.currency_id.round(new_standard_price),
             )
+            if distribution_method == "value":
+                description += _(" Revaluation distributed over existing values proportionate to values.")
         revaluation_svl_vals = {
             'company_id': self.company_id.id,
             'product_id': product_id.id,
