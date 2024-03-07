@@ -27,7 +27,6 @@ class StockValuationLayerRevaluation(models.TransientModel):
 
     company_id = fields.Many2one('res.company', "Company", readonly=True, required=True)
     currency_id = fields.Many2one('res.currency', "Currency", related='company_id.currency_id', required=True)
-    distribution_method = fields.Selection(related="company_id.inventory_revaluation_distribution_method")
 
     product_id = fields.Many2one('product.product', "Related product", required=True, check_company=True)
     property_valuation = fields.Selection(related='product_id.categ_id.property_valuation')
@@ -68,9 +67,10 @@ class StockValuationLayerRevaluation(models.TransientModel):
 
         product_id = self.product_id.with_company(self.company_id)
         cost_method = product_id.categ_id.property_cost_method
-
-        if self.distribution_method not in ['quantity', 'value']:
-            raise UserError(_("Invalid inventory revaluation distribution method."))
+        
+        distribution_method = self.env['ir.config_parameter'].get_param('stock_account.distribution_method', 'quantity')
+        if distribution_method not in ['quantity', 'value']:
+            raise UserError(_("Invalid system parameter for stock_account.distribution_method. It can either be 'quantity' or 'value'."))
 
         remaining_svls = self.env['stock.valuation.layer'].search([
             ('product_id', '=', product_id.id),
@@ -85,9 +85,9 @@ class StockValuationLayerRevaluation(models.TransientModel):
 
         # Calculate new product standard price in case of FIFO or AVCO
         if cost_method in ('average', 'fifo'):
-            if self.distribution_method == 'quantity':
+            if distribution_method == 'quantity':
                 new_standard_price = product_id.standard_price + self.added_value / self.current_quantity_svl
-            elif self.distribution_method == 'value':
+            elif distribution_method == 'value':
                 new_standard_price = product_id.standard_price + product_id.standard_price * mutation_factor
 
         # Prepare manual stock valuation layer
@@ -112,9 +112,9 @@ class StockValuationLayerRevaluation(models.TransientModel):
         # Distribute the revaluation over existing values
         remaining_added_value = self.added_value
         for svl in remaining_svls:
-            if self.distribution_method == "quantity":
+            if distribution_method == "quantity":
                 mutation_value = svl.remaining_qty * mutation_unit_cost
-            elif self.distribution_method == "value":
+            elif distribution_method == "value":
                 mutation_value = svl.remaining_value * mutation_factor
             if float_is_zero(svl.remaining_qty - remaining_qty, precision_rounding=self.product_id.uom_id.rounding):
                 taken_value = self.currency_id.round(remaining_added_value)
